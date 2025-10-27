@@ -3,6 +3,8 @@ package main
 import (
 	"database/sql"
 	"log"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var db *sql.DB
@@ -13,10 +15,10 @@ func init() {
 	if err != nil {
 		log.Fatalf("Failed to open database: %v", err)
 	}
-	createTableSQL := `CREATE TABLE IF NOT EXIST users(
+	createTableSQL := `CREATE TABLE IF NOT EXISTS users(
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			username TEXT NOT NUL,
-			email TEXT NOT NUL UNIQUE
+			username TEXT NOT NULL,
+			email TEXT NOT NULL UNIQUE
 	);`
 	_, err = db.Exec(createTableSQL)
 	if err != nil {
