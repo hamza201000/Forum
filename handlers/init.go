@@ -1,7 +1,8 @@
-package main
+package forum
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -24,4 +25,5 @@ func init() {
 	if err != nil {
 		log.Fatalf("Failed to create table: %v", err)
 	}
+	fmt.Println("TABLE successfully added")
 }
