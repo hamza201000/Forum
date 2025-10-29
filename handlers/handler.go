@@ -1,6 +1,7 @@
 package forum
 
 import (
+	"database/sql"
 	"net/http"
 	"text/template"
 )
@@ -46,6 +47,45 @@ func HandlerDataRegister(w http.ResponseWriter, r *http.Request) {
 	defer stmt.Close()
 	_, err = stmt.Exec(user, email, password)
 	if err != nil {
+		return
+	}
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func HandleLogin(w http.ResponseWriter, r *http.Request) {
+
+	if r.URL.Path != "/login" {
+		return
+	}
+	if r.Method == http.MethodGet {
+		tmp, err := template.ParseFiles("tamplates/login.html")
+		if err != nil {
+			return
+		}
+		 tmp.Execute(w, nil)
+		
+		
+	} else if r.Method == http.MethodPost {
+		user := r.FormValue("username")
+		password := r.FormValue("password")
+		var hashedPassword string
+
+		err := db.QueryRow(`SELECT password FROM users WHERE username = ?`, user).Scan(&hashedPassword)
+		if err == sql.ErrNoRows {
+			http.Error(w, "Invalid email or password", http.StatusUnauthorized)
+			return
+		} else if err != nil {
+			return
+		}
+		if hashedPassword != password {
+
+			
+			http.Redirect(w, r,"/login", http.StatusSeeOther)
+
+		}
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+	} else {
 		return
 	}
 }

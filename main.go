@@ -9,10 +9,13 @@ import (
 )
 
 func main() {
-	http.HandleFunc("/", forum.Handler)
-	http.HandleFunc("/register", forum.HandleRegister)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", forum.Handler)
+	mux.HandleFunc("/register", forum.HandleRegister)
+	mux.HandleFunc("/register/data", forum.HandlerDataRegister)
+	mux.HandleFunc("/login", forum.HandleLogin)
 	log.Println("Server running on: http://localhost:8080")
-	err := http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":8080", mux)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
