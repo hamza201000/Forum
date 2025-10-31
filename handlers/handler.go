@@ -63,9 +63,8 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			return
 		}
-		 tmp.Execute(w, nil)
-		
-		
+		tmp.Execute(w, nil)
+
 	} else if r.Method == http.MethodPost {
 		user := r.FormValue("username")
 		password := r.FormValue("password")
@@ -80,12 +79,48 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		}
 		if hashedPassword != password {
 
-			
-			http.Redirect(w, r,"/login", http.StatusSeeOther)
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
 
 		}
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	} else {
 		return
 	}
+}
+
+func HandlePost(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/post" {
+		return
+	} else if r.Method != http.MethodGet {
+		return
+	}
+	tmp, err := template.ParseFiles("tamplates/post.html")
+	if err != nil {
+		return
+	}
+	tmp.Execute(w, nil)
+}
+func HandleAddPost(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/addpost" {
+		return
+	} else if r.Method != http.MethodPost {
+		return
+	}
+	title := r.FormValue("title")
+	content := r.FormValue("content")
+	insrtpost := `INSERT INTO posts (title,content) VALUES (?, ?) `
+	stmt, err := db.Prepare(insrtpost)
+	if err != nil {
+		return
+	}
+	defer stmt.Close()
+	_, err = stmt.Exec(title, content)
+	if err != nil {
+		return
+	}
+	tmp, err := template.ParseFiles("tamplates/addpost.html")
+	if err != nil {
+		return
+	}
+	tmp.Execute(w, nil)
 }
