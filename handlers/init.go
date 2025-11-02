@@ -27,16 +27,31 @@ func init() {
 	if err != nil {
 		log.Fatalf("Failed to create table: %v", err)
 	}
+	if !tableExists(db, "categories") {
+		CreateCategoriestable := `CREATE TABLE IF NOT EXISTS categories(
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		categorie TEXT NOT NULL
+	);`
+		_, err = db.Exec(CreateCategoriestable)
+		if err != nil {
+			log.Fatalf("Failed to create table: %v", err)
+		}
+		WriteCategories()
+	}
+
 	CreatePostsTable := `CREATE TABLE IF NOT EXISTS posts(
-			id TEXT PRIMARY KEY ,
+			id INTEGER PRIMARY KEY AUTOINCREMENT ,
 			title TEXT ,
 			content TEXT ,
-			user_id TEXT ,
-			FORGEIGN KEY (user_id) REFERENCES users(id)
+			user_id INTEGER ,
+			category_id INTEGER,
+			FOREIGN KEY (user_id) REFERENCES users(id),
+			FOREIGN KEY (category_id) REFERENCES categories(id)
 	);`
 	_, err = db.Exec(CreatePostsTable)
 	if err != nil {
 		log.Fatalf("Failed to create table: %v", err)
 	}
+
 	fmt.Println("TABLE successfully added")
 }

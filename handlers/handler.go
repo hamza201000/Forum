@@ -2,6 +2,7 @@ package forum
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 	"text/template"
 )
@@ -103,24 +104,42 @@ func HandlePost(w http.ResponseWriter, r *http.Request) {
 func HandleAddPost(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/addpost" {
 		return
-	} else if r.Method != http.MethodPost {
+	} else if r.Method == http.MethodGet {
+		tmp, err := template.ParseFiles("tamplates/addpost.html")
+		if err != nil {
+			return
+		}
+		tmp.Execute(w, nil)
+	} else if r.Method == http.MethodPost {
+
+		title := r.FormValue("title")
+		content := r.FormValue("content")
+		category := r.FormValue("category_ids")
+		fmt.Println(category)
+		id := 0
+		err := db.QueryRow(`SELECT id FROM categories WHERE categorie=?`, category).Scan(&id)
+		if err != nil {
+
+			fmt.Println(err)
+			return
+		}
+		insrtpost := `INSERT INTO posts (title,content,category_id) VALUES (?, ?,?)`
+		stmt, err := db.Prepare(insrtpost)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		defer stmt.Close()
+		_, err = stmt.Exec(title, content, id)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		http.Redirect(w, r, "/post", http.StatusSeeOther)
+	} else {
 		return
 	}
-	title := r.FormValue("title")
-	content := r.FormValue("content")
-	insrtpost := `INSERT INTO posts (title,content) VALUES (?, ?) `
-	stmt, err := db.Prepare(insrtpost)
-	if err != nil {
-		return
-	}
-	defer stmt.Close()
-	_, err = stmt.Exec(title, content)
-	if err != nil {
-		return
-	}
-	tmp, err := template.ParseFiles("tamplates/addpost.html")
-	if err != nil {
-		return
-	}
-	tmp.Execute(w, nil)
+
 }
