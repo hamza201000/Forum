@@ -9,6 +9,7 @@ import (
 type Datapost struct {
 	Title   string
 	Content string
+	
 }
 
 func tableExists(db *sql.DB, tableName string) bool {
@@ -61,4 +62,17 @@ func GetPost() []Datapost {
 		return nil
 	}
 	return posts
+}
+
+func checkuser(userid int64) bool {
+	var token string
+	err := DB.QueryRow(`SELECT token FROM sessions WHERE user_id = ? `, userid).Scan(&token)
+	if err == sql.ErrNoRows {
+		return true
+	}
+	_, err = DB.Exec(`DELETE FROM sessions WHERE user_id = ? `, userid)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return false
 }

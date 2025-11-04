@@ -40,12 +40,13 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			templates.ExecuteTemplate(w, "login.html", map[string]string{"Error": "database error"})
 			return
 		}
-
 		if err := bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password)); err != nil {
 			templates.ExecuteTemplate(w, "login.html", map[string]string{"Error": "Invalid email or password"})
 			return
 		}
+		checkuser(userID)
 
+		
 		token := generateRandomToken()
 		if token == "" {
 			templates.ExecuteTemplate(w, "login.html", map[string]string{"Error": "Failed to create session"})

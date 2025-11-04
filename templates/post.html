@@ -8,8 +8,13 @@
 <body>
 
      <div class="bar">
+       {{if .Username}}
+       <a href="/logout" class="bar-link" >logout</a>
+       <p>WELCOME {{.Username}}</p>
+       {{else}}
         <a href="/login" class="bar-link" >Login</a>
         <a href="/register" class="bar-link" >Register</a>
+        {{end}}
     </div>
     <br>
 

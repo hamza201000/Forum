@@ -7,6 +7,11 @@ import (
 	"os"
 )
 
+type PostPageData struct {
+	Username string
+	Posts    []Datapost
+}
+
 func Handler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		return
@@ -21,18 +26,31 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandlePost(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/post" {
+	if r.URL.Path != "/post"  {
 		return
 	} else if r.Method != http.MethodGet {
 		return
 	}
+	userid := GetUserIDFromRequest(r)
+	 username :=""
+	if userid != 0 {
+		
+		err := DB.QueryRow("SELECT username FROM users WHERE id = ?", userid).Scan(&username)
+		if err != nil {
+			fmt.Print(err)
+			return
+		}
+
+	}
+	post := GetPost()
+
+	PostPageData := &PostPageData{Username: username, Posts: post}
 
 	tmp, err := template.ParseFiles("templates/post.html")
 	if err != nil {
 		return
 	}
-	post := GetPost()
-	if err = tmp.Execute(w, post); err != nil {
+	if err = tmp.Execute(w, PostPageData); err != nil {
 		fmt.Println(err)
 		return
 	}
@@ -43,7 +61,7 @@ func HandleAddPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	userId := GetUserIDFromRequest(r)
-	
+
 	if userId == 0 {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
