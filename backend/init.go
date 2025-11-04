@@ -79,6 +79,13 @@ func init() {
 		FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE,
 		FOREIGN KEY(comment_id) REFERENCES comments(id) ON DELETE CASCADE
 	);
+	CREATE TABLE IF NOT EXISTS post_categories (
+    post_id INTEGER,
+    category_id INTEGER,
+    FOREIGN KEY(post_id) REFERENCES posts(id),
+    FOREIGN KEY(category_id) REFERENCES categories(id),
+    PRIMARY KEY(post_id, category_id)  -- ensures no duplicate post-category combinations
+);
 
 	-- Indices for performance
 	CREATE INDEX IF NOT EXISTS idx_posts_user ON posts(user_id);

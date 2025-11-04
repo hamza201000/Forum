@@ -9,7 +9,6 @@ import (
 type Datapost struct {
 	Title   string
 	Content string
-	
 }
 
 func tableExists(db *sql.DB, tableName string) bool {
@@ -75,4 +74,18 @@ func checkuser(userid int64) bool {
 		log.Fatal(err)
 	}
 	return false
+}
+
+func InsertCategoriId(post_id int, categories []string) {
+	var categorie_id int
+	for _, categorie := range categories {
+		err := DB.QueryRow(`SELECT id FROM categories WHERE categorie = ?`, categorie).Scan(&categorie_id)
+		if err != nil {
+			return
+		}
+		_, err = DB.Exec("INSERT INTO post_categories (post_id,category_id) VALUES (?,?)", post_id, categorie_id)
+		if err != nil {
+			return
+		}
+	}
 }

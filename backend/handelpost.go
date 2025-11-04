@@ -26,15 +26,15 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandlePost(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/post"  {
+	if r.URL.Path != "/post" {
 		return
 	} else if r.Method != http.MethodGet {
 		return
 	}
 	userid := GetUserIDFromRequest(r)
-	 username :=""
+	username := ""
 	if userid != 0 {
-		
+
 		err := DB.QueryRow("SELECT username FROM users WHERE id = ?", userid).Scan(&username)
 		if err != nil {
 			fmt.Print(err)
@@ -77,14 +77,16 @@ func HandleAddPost(w http.ResponseWriter, r *http.Request) {
 		title := r.FormValue("title")
 		content := r.FormValue("content")
 		category := r.FormValue("category_ids")
-		fmt.Println(category)
+		// var category []string
+		// category = append(category, r.FormValue("category_ids"))
+		// fmt.Println(category)
 		id := 0
 		err := DB.QueryRow(`SELECT id FROM categories WHERE categorie=?`, category).Scan(&id)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
-		insrtpost := `INSERT INTO posts (title,content,category_id,user_id) VALUES (?, ?,?)`
+		insrtpost := `INSERT INTO posts (title,content,category_id,user_id) VALUES (?, ?,?,?)`
 		stmt, err := DB.Prepare(insrtpost)
 		if err != nil {
 			fmt.Println(err)
@@ -92,7 +94,7 @@ func HandleAddPost(w http.ResponseWriter, r *http.Request) {
 		}
 
 		defer stmt.Close()
-		_, err = stmt.Exec(title, content, id)
+		_, err = stmt.Exec(title, content, id, userId)
 		if err != nil {
 			fmt.Println(err)
 			return

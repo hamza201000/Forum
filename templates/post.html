@@ -19,19 +19,25 @@
     <br>
 
     <a href="/addpost" >
-         <button class="cretp">CREATE YOUR POST</button>
+         <button class="Create" >CREATE YOUR POST</button>
        </a>
-    <div>
-       
-       {{range .}}
-       <div>
-        <h2>{{.Title}}</h2>
+    <div class ="container">
+    <div class="filter">
+      <h2>Filter</h2>
+    </div>
+    <div class ="allpost">
+       {{range .Posts}}
+       <div class="post">
+        <h1 id="title">{{.Title}}</h1>
          <pre>{{.Content}}</pre>
        </div>
-       <hr>
+       <div>
+       </div>
        {{else}}
-               <p>No posts found.</p>
+          <h2>No posts found.</h2>
+          </div>
        {{end}}
+    
 
     </div>
 
