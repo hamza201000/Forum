@@ -27,12 +27,12 @@
 
   <!-- Modal Create Post -->
   <div id="show" class="modal {{if .Popup}}showit{{end}}">
-    <a href="/post{{if .Curentcategory}}?Categories={{.Curentcategory}}{{end}}">
+    <a href="{{.Path}}">
       <button class="back"></button>
     </a>
 
     <div class="addpost">
-      <a href="/post{{if .Curentcategory}}?Categories={{.Curentcategory}}{{end}}" class="close">&times;</a>
+      <a href="{{.Path}}" class="close">&times;</a>
 
       <form method="POST" action="/post" class="table-post">
         <label>Add title</label>

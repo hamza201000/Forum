@@ -19,7 +19,7 @@ type PostPageData struct {
 	Cachetitle     string
 	Cacheconetent  string
 	Categories     []string
-	Curentcategory string
+	Path string
 }
 
 func Handler(DB *sql.DB) http.HandlerFunc {
@@ -37,6 +37,12 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tmp, err := template.ParseFiles("templates/post.html")
 		Categories := r.URL.Query().Get("Categories")
+
+		http.SetCookie(w, &http.Cookie{
+			Name:  "LastPath",
+			Value: r.RequestURI,
+			Path:  "/post",
+		})
 
 		IdPst, err := strconv.Atoi(r.URL.Query().Get("id"))
 		if err != nil {
@@ -109,16 +115,17 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 					userid := GetUserIDFromRequest(DB, r)
 					username := ""
 					if userid != 0 {
-
 						err := DB.QueryRow("SELECT username FROM users WHERE id = ?", userid).Scan(&username)
 						if err != nil {
 							fmt.Print(err)
 							return
 						}
-
 					}
 
 					post := GetPost(DB, lastCategories, username, userid)
+					LastPath, err := r.Cookie("LastPath")
+					if err != nil {
+					}
 
 					PageData := &PostPageData{
 						Error:          "⚠️ You must choose one category or more",
@@ -128,9 +135,9 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 						Cachetitle:     title,
 						Cacheconetent:  content,
 						Categories:     []string{"Technology", "Science", "Education", "Engineering", "Entertainment"},
-						Curentcategory: lastCategories,
+						Path: LastPath.Value,
 					}
-					
+
 					RenderTemplate(w, "post.html", PageData)
 					return
 				}
