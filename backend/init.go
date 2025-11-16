@@ -5,14 +5,14 @@ import (
 	"log"
 	"time"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 
 
 func init() {
 	var err error
-	DB, err := sql.Open("sqlite3", "forum.db")
+	DB, err := sql.Open("sqlite", "forum.db")
 	if err != nil {
 		log.Fatal(err)
 	}

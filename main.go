@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	DB, err := sql.Open("sqlite3", "forum.db")
+	DB, err := sql.Open("sqlite", "forum.db")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -26,6 +26,6 @@ func main() {
 	http.HandleFunc("/logout", backend.LogoutHandler(DB))
 	http.HandleFunc("/comment", backend.HandleAddComment(DB))
 
-	log.Println("Server running at http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Println("Server running at http://localhost:8081")
+	log.Fatal(http.ListenAndServe(":8081", nil))
 }
