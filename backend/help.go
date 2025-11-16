@@ -229,3 +229,36 @@ func Render(w http.ResponseWriter, status int) {
 	// Execute the template and display the error page
 	tmp.Execute(w, mes)
 }
+
+func CheckDataPost(DB *sql.DB, r *http.Request, errorMsg string) PostPageData {
+
+	title := r.FormValue("title")
+	content := r.FormValue("content")
+	userid := GetUserIDFromRequest(DB, r)
+	username := ""
+	if userid != 0 {
+		err := DB.QueryRow("SELECT username FROM users WHERE id = ?", userid).Scan(&username)
+		if err != nil {
+			fmt.Print(err)
+			// return nil
+		}
+	}
+
+	post := GetPost(DB, lastCategories, username, userid)
+	LastPath, err := r.Cookie("LastPath")
+	if err != nil {
+	}
+
+	PageData := &PostPageData{
+		Error:         errorMsg,
+		Popup:         true,
+		Posts:         post,
+		Username:      username,
+		Cachetitle:    title,
+		Cacheconetent: content,
+		Categories:    []string{"Technology", "Science", "Education", "Engineering", "Entertainment"},
+		Path:          LastPath.Value,
+	}
+	return *PageData
+
+}

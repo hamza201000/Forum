@@ -12,14 +12,14 @@ import (
 var lastCategories string
 
 type PostPageData struct {
-	Popup          bool
-	Username       string
-	Posts          []Datapost
-	Error          string
-	Cachetitle     string
-	Cacheconetent  string
-	Categories     []string
-	Path string
+	Popup         bool
+	Username      string
+	Posts         []Datapost
+	Error         string
+	Cachetitle    string
+	Cacheconetent string
+	Categories    []string
+	Path          string
 }
 
 func Handler(DB *sql.DB) http.HandlerFunc {
@@ -43,7 +43,6 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 			Value: r.RequestURI,
 			Path:  "/post",
 		})
-
 		IdPst, err := strconv.Atoi(r.URL.Query().Get("id"))
 		if err != nil {
 			IdPst = 0
@@ -103,42 +102,33 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 				http.Redirect(w, r, "/login", http.StatusSeeOther)
 				return
 			} else {
-				title := r.FormValue("title")
-				content := r.FormValue("content")
+				title, titleOK := r.Form["title"]
+				content, contentOK := r.Form["content"]
+
+				if !titleOK || !contentOK {
+					http.Error(w, "Missing required fields", http.StatusBadRequest)
+					return
+				}
 				// category := r.FormValue("category_ids")
 				if err := r.ParseForm(); err != nil {
 					http.Error(w, "Error parsing form", http.StatusBadRequest)
 				}
+				if len(title) == 0 {
+					errorMsg := "⚠️ Your post needs a title. Please enter one."
+					RenderTemplate(w, "post.html", CheckDataPost(DB, r, errorMsg))
+					return
+				} else if len(content) == 0 {
+					errorMsg := "⚠️ Your post needs some content. Please type something to continue."
+					RenderTemplate(w, "post.html", CheckDataPost(DB, r, errorMsg))
+					return
+				}
+
 				// var category []string
 				category := r.Form["category_ids"]
 				if len(category) == 0 {
-					userid := GetUserIDFromRequest(DB, r)
-					username := ""
-					if userid != 0 {
-						err := DB.QueryRow("SELECT username FROM users WHERE id = ?", userid).Scan(&username)
-						if err != nil {
-							fmt.Print(err)
-							return
-						}
-					}
+					errorMsg := "⚠️ You must choose one category or more"
 
-					post := GetPost(DB, lastCategories, username, userid)
-					LastPath, err := r.Cookie("LastPath")
-					if err != nil {
-					}
-
-					PageData := &PostPageData{
-						Error:          "⚠️ You must choose one category or more",
-						Popup:          true,
-						Posts:          post,
-						Username:       username,
-						Cachetitle:     title,
-						Cacheconetent:  content,
-						Categories:     []string{"Technology", "Science", "Education", "Engineering", "Entertainment"},
-						Path: LastPath.Value,
-					}
-
-					RenderTemplate(w, "post.html", PageData)
+					RenderTemplate(w, "post.html", CheckDataPost(DB, r, errorMsg))
 					return
 				}
 
