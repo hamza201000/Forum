@@ -8,8 +8,6 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-
-
 func init() {
 	var err error
 	DB, err := sql.Open("sqlite", "forum.db")
@@ -85,6 +83,7 @@ func init() {
     PRIMARY KEY(post_id, category_id)  -- ensures no duplicate post-category combinations
 );
 
+
 	-- Indices for performance
 	CREATE INDEX IF NOT EXISTS idx_posts_user ON posts(user_id);
 	CREATE INDEX IF NOT EXISTS idx_comments_post ON comments(post_id);
@@ -113,4 +112,15 @@ func init() {
 		WriteCategories(DB)
 	}
 	InsertCategorie()
+	// if !tableExists(DB, "method_post") {
+	// 	method_post := `CREATE TABLE IF NOT EXISTS method_post(
+	// 	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	// 	name TEXT NOT NULL UNIQUE
+	// );`
+	// 	_, err = DB.Exec(method_post)
+	// 	if err != nil {
+	// 		log.Fatalf("Failed to create table: %v", err)
+	// 	}
+	// 	InsertNamePost(DB)
+	// }
 }

@@ -17,12 +17,14 @@ func main() {
 	backend.LoadTemplates("templates/*.html")
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	http.HandleFunc("/post", backend.HandlePost(DB))
+
 	http.HandleFunc("/", backend.Handler(DB))
 
 	http.HandleFunc("/like", backend.HandleLike(DB))
 	// http.HandleFunc("/static", backend.HandlerStatic)
-	http.HandleFunc("/signup", backend.SignupHandler(DB))
-	http.HandleFunc("/login", backend.LoginHandler(DB))
+	http.HandleFunc("/signup", backend.NotAuthRequired(DB, backend.SignupHandler(DB)))
+	http.HandleFunc("/login", backend.NotAuthRequired(DB, backend.LoginHandler(DB)))
+
 	http.HandleFunc("/logout", backend.LogoutHandler(DB))
 	http.HandleFunc("/comment", backend.HandleAddComment(DB))
 

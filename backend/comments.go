@@ -28,7 +28,13 @@ func HandleAddComment(db *sql.DB) http.HandlerFunc {
 			http.Error(w, "Champs manquants", http.StatusBadRequest)
 			return
 		}
+		var dummy int // or matching columns
+		err = db.QueryRow("SELECT id FROM posts WHERE id = ?", postID).Scan(&dummy)
 
+		if err == sql.ErrNoRows {
+			http.Redirect(w, r, r.Referer(), http.StatusSeeOther)
+			return
+		}
 		// Insérer le commentaire
 		_, err = db.Exec("INSERT INTO comments (post_id, user_id, comment) VALUES (?, ?, ?)", postID, userID, content)
 		if err != nil {
@@ -49,6 +55,6 @@ func HandleAddComment(db *sql.DB) http.HandlerFunc {
 			return
 		}
 		defer rows.Close()
-		http.Redirect(w, r, "/post#post"+postID, http.StatusSeeOther)
+		http.Redirect(w, r, r.Referer()+"#"+postID, http.StatusSeeOther)
 	}
 }

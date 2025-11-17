@@ -81,13 +81,14 @@
     <!-- Posts Section -->
     <section class="posts">
       {{range .Posts}}
-      <article class="post-card">
-        <div class="post-header">
+      <article id="{{.IdPost}}"  class="post-card" style="scroll-margin-top: 100px;">
+        <div  class="post-header">
           <h2>{{.Title}}</h2>
         </div>
         <p class="post-content">{{.Content}}</p>
-
-        <div class="interaction">
+      {{if .Username}}
+        
+        <div  class="interaction">
           <form method="POST" action="/like">
             <input type="hidden" name="post_id" value="{{.IdPost}}">
             <input type="hidden" name="value" value="1">
@@ -99,19 +100,21 @@
             <input type="hidden" name="value" value="-1">
             <button class="dislike-btn">👎 Dislike</button>
           </form>
+      {{end}}
           <span class="counts">
             ❤️ {{.Likes}} | 💢 {{.Dislikes}}
           </span>
         </div>
-
+        
         <!-- Comments -->
+         {{if .Username}}
         <div class="comment-section">
           <form method="POST" action="/comment#post{{.IdPost}}">
             <input type="hidden" name="post_id" value="{{.IdPost}}">
             <input type="text" name="comment" placeholder="Write a comment..." required>
             <button type="submit" class="btn btn-small">Comment</button>
           </form>
-
+          {{end}}
           <div class="comments-list">
             {{range .Comments}}
             <div class="comment">

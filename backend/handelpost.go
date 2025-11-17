@@ -9,7 +9,7 @@ import (
 	"strconv"
 )
 
-var lastCategories string
+
 
 type PostPageData struct {
 	Popup         bool
@@ -25,6 +25,7 @@ type PostPageData struct {
 func Handler(DB *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
+			Render(w,404)
 			return
 		} else if r.Method != http.MethodGet {
 			return
@@ -48,9 +49,14 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 			IdPst = 0
 		}
 		if r.URL.Path != "/post" {
+			Render(w,404)
 			return
 		}
 		if r.Method == http.MethodGet {
+			if r.URL.Query().Has("title") || r.URL.Query().Has("content") {
+				http.Error(w, "Form must be submitted using POST, not GET.", http.StatusBadRequest)
+				return
+			}
 			Data := &PostPageData{}
 			userid := GetUserIDFromRequest(DB, r)
 			username := ""
@@ -60,6 +66,11 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 					fmt.Print(err)
 					return
 				}
+			}
+			query := r.URL.RawQuery
+			if query!=""&&!CheckFiltere(query, username) {
+				Render(w, 404)
+				return
 			}
 			if IdPst != 0 {
 				// fmt.Println("ok")
@@ -78,7 +89,7 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 			} else {
 
 				post := GetPost(DB, Categories, username, userid)
-				lastCategories = Categories
+				
 
 				Data = &PostPageData{
 					Username:   username,
@@ -102,6 +113,9 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 				http.Redirect(w, r, "/login", http.StatusSeeOther)
 				return
 			} else {
+				if err := r.ParseForm(); err != nil {
+					http.Error(w, "Error parsing form", http.StatusBadRequest)
+				}
 				title, titleOK := r.Form["title"]
 				content, contentOK := r.Form["content"]
 
@@ -110,14 +124,12 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 					return
 				}
 				// category := r.FormValue("category_ids")
-				if err := r.ParseForm(); err != nil {
-					http.Error(w, "Error parsing form", http.StatusBadRequest)
-				}
-				if len(title) == 0 {
+
+				if len(title[0]) == 0 {
 					errorMsg := "⚠️ Your post needs a title. Please enter one."
 					RenderTemplate(w, "post.html", CheckDataPost(DB, r, errorMsg))
 					return
-				} else if len(content) == 0 {
+				} else if len(content[0]) == 0 {
 					errorMsg := "⚠️ Your post needs some content. Please type something to continue."
 					RenderTemplate(w, "post.html", CheckDataPost(DB, r, errorMsg))
 					return
@@ -140,7 +152,7 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 				}
 
 				defer stmt.Close()
-				res, err := stmt.Exec(title, content, userId)
+				res, err := stmt.Exec(title[0], content[0], userId)
 				if err != nil {
 					fmt.Println(err)
 					return

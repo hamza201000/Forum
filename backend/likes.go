@@ -3,6 +3,7 @@ package backend
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -25,7 +26,19 @@ func HandleLike(db *sql.DB) http.HandlerFunc {
 		// Récupère les valeurs envoyées depuis un formulaire HTML
 		postID := r.FormValue("post_id")
 		value := r.FormValue("value") // "1" pour like, "-1" pour dislike
+		var dummy int                 // or matching columns
+		err = db.QueryRow("SELECT id FROM posts WHERE id = ?", postID).Scan(&dummy)
 
+		if err == sql.ErrNoRows {
+			http.Redirect(w, r, r.Referer(), http.StatusSeeOther)
+			return
+		}
+
+		if err != nil {
+
+			log.Println("DB error:", err)
+			return
+		}
 		if postID == "" || value == "" {
 			http.Error(w, "Paramètres manquants", http.StatusBadRequest)
 			return
@@ -54,6 +67,6 @@ func HandleLike(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		http.Redirect(w, r, "/post", http.StatusSeeOther)
+		http.Redirect(w, r, r.Referer()+"#"+postID, http.StatusSeeOther)
 	}
 }

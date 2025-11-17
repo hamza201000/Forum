@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 type DataComment struct {
@@ -21,6 +22,7 @@ type Datapost struct {
 	Comments []DataComment
 	Likes    string
 	Dislikes string
+	Username string
 }
 
 type Message_Error struct {
@@ -47,6 +49,25 @@ func InsertCategorie() {
 	}
 }
 
+func InsertNamePost(DB *sql.DB) []string {
+	names := []string{"title", "content", "category_ids"}
+	insertcategorie := `INSERT INTO method_post(name) VALUES (?)`
+
+	for _, name := range names {
+		stmt, err := DB.Prepare(insertcategorie)
+		if err != nil {
+			fmt.Println(err)
+			return nil
+		}
+		_, err = stmt.Exec(name)
+		if err != nil {
+			fmt.Println(err)
+			return nil
+		}
+	}
+	return names
+}
+
 func WriteCategories(DB *sql.DB) {
 	categories := []string{"Technology", "Science", "Education", "Engineering", "Entertainment"}
 	insertcategorie := `INSERT INTO categories(categorie) VALUES (?)`
@@ -62,7 +83,6 @@ func WriteCategories(DB *sql.DB) {
 			fmt.Println(err)
 			return
 		}
-
 	}
 }
 
@@ -124,7 +144,7 @@ func GetPost(DB *sql.DB, category, username string, UserId int64) []Datapost {
 			log.Fatal(err)
 			return nil
 		}
-
+		post.Username = username
 		post.Comments = GetComment(DB, post.IdPost)
 		post.Likes, post.Dislikes = GetCountLike(DB, post.IdPost)
 		posts = append(posts, post)
@@ -231,7 +251,7 @@ func Render(w http.ResponseWriter, status int) {
 }
 
 func CheckDataPost(DB *sql.DB, r *http.Request, errorMsg string) PostPageData {
-
+	var post []Datapost
 	title := r.FormValue("title")
 	content := r.FormValue("content")
 	userid := GetUserIDFromRequest(DB, r)
@@ -244,9 +264,15 @@ func CheckDataPost(DB *sql.DB, r *http.Request, errorMsg string) PostPageData {
 		}
 	}
 
-	post := GetPost(DB, lastCategories, username, userid)
 	LastPath, err := r.Cookie("LastPath")
 	if err != nil {
+	}
+
+	if LastPath.Value != "/post" {
+		lastCategories := strings.Split(LastPath.Value, "=")
+		post = GetPost(DB, lastCategories[len(lastCategories)-1], username, userid)
+	} else {
+		post = GetPost(DB, "", username, userid)
 	}
 
 	PageData := &PostPageData{
@@ -260,5 +286,18 @@ func CheckDataPost(DB *sql.DB, r *http.Request, errorMsg string) PostPageData {
 		Path:          LastPath.Value,
 	}
 	return *PageData
+}
 
+func CheckFiltere(query string, username string) bool {
+	Filtre := strings.Split(query, "=")
+	if Filtre[0] != "Categories" {
+		return false
+	}
+	categories := []string{"", "Technology", "Science", "Education", "Engineering", "Entertainment", username}
+	for _, categorie := range categories {
+		if categorie == Filtre[len(Filtre)-1] {
+			return true
+		}
+	}
+	return false
 }
