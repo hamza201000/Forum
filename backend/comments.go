@@ -10,7 +10,7 @@ func HandleAddComment(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Vérifie la méthode
 		if r.Method != http.MethodPost {
-			http.Error(w, "/login", http.StatusMethodNotAllowed)
+			Render(w, http.StatusBadRequest)
 			return
 		}
 

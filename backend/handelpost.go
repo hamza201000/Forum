@@ -61,7 +61,7 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 		if r.Method == http.MethodGet {
 			// r.URL.Query().Has doesn't exist -> use Get()
 			if r.URL.Query().Get("title") != "" || r.URL.Query().Get("content") != "" {
-				http.Error(w, "Form must be submitted using POST, not GET.", http.StatusBadRequest)
+				Render(w, http.StatusBadRequest)
 				return
 			}
 			Data := &PostPageData{}
@@ -76,7 +76,7 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 			}
 
 			query := r.URL.RawQuery
-			if query != "" && !CheckFiltere(query, username) {
+			if query != "" && !CheckFiltere(w,r,query, username) {
 				Render(w, 404)
 				return
 			}
@@ -92,7 +92,7 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 				Data = &PostPageData{
 					Username:   username,
 					Posts:      post,
-					Categories: []string{"liked", "Technology", "Science", "Education", "Engineering", "Entertainment"},
+					Categories: []string{ "Technology", "Science", "Education", "Engineering", "Entertainment"},
 				}
 
 			} else {
@@ -102,7 +102,7 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 				Data = &PostPageData{
 					Username:   username,
 					Posts:      post,
-					Categories: []string{"liked", "Technology", "Science", "Education", "Engineering", "Entertainment"},
+					Categories: []string{ "Technology", "Science", "Education", "Engineering", "Entertainment"},
 				}
 
 			}

@@ -14,7 +14,7 @@
       <p>WELCOME {{.Username}}</p>
     {{else}}
       <a href="/login" class="bar-link">Login</a>
-      <a href="/register" class="bar-link">Register</a>
+      <a href="/signup" class="bar-link">Register</a>
     {{end}}
   </div>
 
@@ -72,15 +72,14 @@
         {{if .Username}}
           <li><a href="/post?Categories={{.Username}}">My Posts</a></li>
          
+          <li><a href="/post?Categories=liked">Liked Posts</a></li>
 
         {{end}}
         {{range .Categories}}
         
-        {{if eq . "Liked"}}
-          <li><a href="/post?Categories={{.}}">Liked Posts</a></li>
-        {{else}}
+        
           <li><a href="/post?Categories={{.}}">{{.}}</a></li>
-          {{end}}
+          
         {{end}}
       </ul>
     </aside>

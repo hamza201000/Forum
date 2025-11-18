@@ -126,14 +126,12 @@ func GetPost(DB *sql.DB, category, username string, UserId int64) []Datapost {
 	} else if category == username {
 		row, err = DB.Query(`SELECT title,content,id FROM posts WHERE user_id=?`, UserId)
 	} else if category == "liked" {
-
 		row, err = DB.Query(`SELECT posts.title,posts.content,posts.id
 	FROM posts
 	JOIN likes ON likes.post_id=posts.id
 	WHERE likes.kind=1 AND likes.user_id=?
 	`, UserId)
-	}else{
-
+	} else {
 		row, err = DB.Query(`SELECT posts.title,posts.content,posts.id
 	FROM posts
 	JOIN post_categories ON post_categories.post_id=posts.id
@@ -297,11 +295,18 @@ func CheckDataPost(DB *sql.DB, r *http.Request, errorMsg string) PostPageData {
 	return *PageData
 }
 
-func CheckFiltere(query string, username string) bool {
+func CheckFiltere(w http.ResponseWriter, r *http.Request, query string, username string) bool {
 	Filtre := strings.Split(query, "=")
-	if Filtre[0] != "Categories" {
+	if Filtre[len(Filtre)-1] == "liked" && username == "" {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+	}
+	if Filtre[0] == "Categories"&&Filtre[len(Filtre)-1] == "" && username == "" {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+	}
+	if Filtre[0] != "Categories" || Filtre[len(Filtre)-1] == "" {
 		return false
 	}
+
 	categories := []string{"liked", "Technology", "Science", "Education", "Engineering", "Entertainment", username}
 	for _, categorie := range categories {
 		if categorie == Filtre[len(Filtre)-1] {
