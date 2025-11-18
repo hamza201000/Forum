@@ -13,7 +13,10 @@ import (
 type DataComment struct {
 	Username  string
 	Content   string
+	Idcomment int
 	CreatedAt string
+	Likesc    string
+	Dislikesc string
 }
 type Datapost struct {
 	Title    string
@@ -116,9 +119,7 @@ func InsertCategoriId(DB *sql.DB, post_id int64, categories []string) {
 
 func GetPost(DB *sql.DB, category, username string, UserId int64) []Datapost {
 	posts := []Datapost{}
-	fmt.Println("Fetching posts for category:", category, "and username:", UserId)
 	Categorie_Id := CategoriesId[category]
-
 	var row *sql.Rows
 	var err error
 	if category == "" {
@@ -164,6 +165,7 @@ func GetPost(DB *sql.DB, category, username string, UserId int64) []Datapost {
 	return posts
 }
 
+// ////
 func GetPostById(DB *sql.DB, PostId int) []Datapost {
 	posts := []Datapost{}
 	row, err := DB.Query(`SELECT title,content,id FROM posts WHERE id =?`, PostId)
@@ -192,9 +194,10 @@ func GetPostById(DB *sql.DB, PostId int) []Datapost {
 func GetComment(DB *sql.DB, PostId int) []DataComment {
 	Comments := []DataComment{}
 	rows, err := DB.Query(`
-			SELECT u.username, c.comment, c.created_at
+			SELECT u.username, c.comment, c.created_at, c.id
 			FROM comments c
 			JOIN users u ON u.id = c.user_id
+			JOIN posts p ON p.id = c.post_id
 			WHERE c.post_id = ?
 			ORDER BY c.created_at DESC`, PostId)
 	if err != nil {
@@ -207,7 +210,8 @@ func GetComment(DB *sql.DB, PostId int) []DataComment {
 
 	for rows.Next() {
 		var DataComments DataComment
-		rows.Scan(&DataComments.Username, &DataComments.Content, &DataComments.CreatedAt)
+		rows.Scan(&DataComments.Username, &DataComments.Content, &DataComments.CreatedAt, &DataComments.Idcomment)
+		DataComments.Likesc, DataComments.Dislikesc = GetCountLikeComment(DB, DataComments.Idcomment)
 		Comments = append(Comments, DataComments)
 	}
 
@@ -221,6 +225,17 @@ func GetCountLike(DB *sql.DB, PostId int) (string, string) {
 	DB.QueryRow("SELECT COUNT(*) FROM likes WHERE post_id = ? AND kind = -1", PostId).Scan(&dislikesCount)
 	likes := strconv.Itoa(likesCount)
 	dislikes := strconv.Itoa(dislikesCount)
+	return likes, dislikes
+}
+
+func GetCountLikeComment(DB *sql.DB, CommentId int) (string, string) {
+	// Compte les likes et dislikes
+	var likesCount, dislikesCount int
+	DB.QueryRow("SELECT COUNT(*) FROM comments_like WHERE comment_id = ? AND kind = 1", CommentId).Scan(&likesCount)
+	DB.QueryRow("SELECT COUNT(*) FROM comments_like WHERE comment_id = ? AND kind = -1", CommentId).Scan(&dislikesCount)
+	likes := strconv.Itoa(likesCount)
+	dislikes := strconv.Itoa(dislikesCount)
+
 	return likes, dislikes
 }
 
@@ -297,21 +312,24 @@ func CheckDataPost(DB *sql.DB, r *http.Request, errorMsg string) PostPageData {
 
 func CheckFiltere(w http.ResponseWriter, r *http.Request, query string, username string) bool {
 	Filtre := strings.Split(query, "=")
-	if Filtre[len(Filtre)-1] == "liked" && username == "" {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-	}
-	if Filtre[0] == "Categories"&&Filtre[len(Filtre)-1] == "" && username == "" {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-	}
-	if Filtre[0] != "Categories" || Filtre[len(Filtre)-1] == "" {
-		return false
-	}
+	if Filtre[0] != "Categories" {
+		if Filtre[len(Filtre)-1] == "liked" && username == "" {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+		}
+		if Filtre[0] == "Categories" && Filtre[len(Filtre)-1] == "" && username == "" {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+		}
+		if Filtre[0] != "Categories" || Filtre[len(Filtre)-1] == "" {
+			return false
+		}
 
-	categories := []string{"liked", "Technology", "Science", "Education", "Engineering", "Entertainment", username}
-	for _, categorie := range categories {
-		if categorie == Filtre[len(Filtre)-1] {
-			return true
+		categories := []string{"liked", "Technology", "Science", "Education", "Engineering", "Entertainment", username}
+		for _, categorie := range categories {
+			if categorie == Filtre[len(Filtre)-1] {
+				return true
+			}
 		}
 	}
 	return false
+
 }

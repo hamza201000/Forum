@@ -76,11 +76,10 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 			}
 
 			query := r.URL.RawQuery
-			if query != "" && !CheckFiltere(w,r,query, username) {
+			if query != "" && !CheckFiltere(w, r, query, username) {
 				Render(w, 404)
 				return
 			}
-		fmt.Println("Filter Categories:", Categories)
 
 			if IdPst != 0 {
 				post := GetPostById(DB, IdPst)
@@ -92,7 +91,7 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 				Data = &PostPageData{
 					Username:   username,
 					Posts:      post,
-					Categories: []string{ "Technology", "Science", "Education", "Engineering", "Entertainment"},
+					Categories: []string{"Technology", "Science", "Education", "Engineering", "Entertainment"},
 				}
 
 			} else {
@@ -102,7 +101,7 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 				Data = &PostPageData{
 					Username:   username,
 					Posts:      post,
-					Categories: []string{ "Technology", "Science", "Education", "Engineering", "Entertainment"},
+					Categories: []string{"Technology", "Science", "Education", "Engineering", "Entertainment"},
 				}
 
 			}

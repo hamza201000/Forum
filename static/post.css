@@ -337,7 +337,7 @@ fieldset input[type="checkbox"] {
 }
 
 /* Interaction Buttons */
-.interaction {
+.interaction  {
   display: flex;
   gap: 1rem;
   align-items: center;
@@ -472,5 +472,4 @@ fieldset input[type="checkbox"] {
 .no-posts h2 {
   color: #667eea;
 }
-
 
