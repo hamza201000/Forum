@@ -4,12 +4,11 @@ import (
 	"database/sql"
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
 )
-
-
 
 type PostPageData struct {
 	Popup         bool
@@ -25,9 +24,11 @@ type PostPageData struct {
 func Handler(DB *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
-			Render(w,404)
+			Render(w, 404)
 			return
 		} else if r.Method != http.MethodGet {
+			// return 405 for non-GET methods
+			Render(w, http.StatusMethodNotAllowed)
 			return
 		}
 		http.Redirect(w, r, "/post", http.StatusSeeOther)
@@ -37,8 +38,12 @@ func Handler(DB *sql.DB) http.HandlerFunc {
 func HandlePost(DB *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tmp, err := template.ParseFiles("templates/post.html")
+		if err != nil {
+			log.Printf("template parse error: %v", err)
+			Render(w, http.StatusInternalServerError)
+			return
+		}
 		Categories := r.URL.Query().Get("Categories")
-
 		http.SetCookie(w, &http.Cookie{
 			Name:  "LastPath",
 			Value: r.RequestURI,
@@ -49,11 +54,13 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 			IdPst = 0
 		}
 		if r.URL.Path != "/post" {
-			Render(w,404)
+			Render(w, 404)
 			return
 		}
+
 		if r.Method == http.MethodGet {
-			if r.URL.Query().Has("title") || r.URL.Query().Has("content") {
+			// r.URL.Query().Has doesn't exist -> use Get()
+			if r.URL.Query().Get("title") != "" || r.URL.Query().Get("content") != "" {
 				http.Error(w, "Form must be submitted using POST, not GET.", http.StatusBadRequest)
 				return
 			}
@@ -67,13 +74,15 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 					return
 				}
 			}
+
 			query := r.URL.RawQuery
-			if query!=""&&!CheckFiltere(query, username) {
+			if query != "" && !CheckFiltere(query, username) {
 				Render(w, 404)
 				return
 			}
+		fmt.Println("Filter Categories:", Categories)
+
 			if IdPst != 0 {
-				// fmt.Println("ok")
 				post := GetPostById(DB, IdPst)
 				if len(post) == 0 {
 					Render(w, 404)
@@ -83,24 +92,24 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 				Data = &PostPageData{
 					Username:   username,
 					Posts:      post,
-					Categories: []string{"Technology", "Science", "Education", "Engineering", "Entertainment"},
+					Categories: []string{"liked", "Technology", "Science", "Education", "Engineering", "Entertainment"},
 				}
 
 			} else {
 
 				post := GetPost(DB, Categories, username, userid)
-				
 
 				Data = &PostPageData{
 					Username:   username,
 					Posts:      post,
-					Categories: []string{"Technology", "Science", "Education", "Engineering", "Entertainment"},
+					Categories: []string{"liked", "Technology", "Science", "Education", "Engineering", "Entertainment"},
 				}
 
 			}
 
 			if err = tmp.Execute(w, Data); err != nil {
-				fmt.Println(err)
+				log.Printf("template execute error: %v", err)
+				Render(w, http.StatusInternalServerError)
 				return
 			}
 			return
@@ -115,6 +124,7 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 			} else {
 				if err := r.ParseForm(); err != nil {
 					http.Error(w, "Error parsing form", http.StatusBadRequest)
+					return
 				}
 				title, titleOK := r.Form["title"]
 				content, contentOK := r.Form["content"]
@@ -180,6 +190,8 @@ func HandlerStatic(DB *sql.DB) http.HandlerFunc {
 			info, err := os.Stat(r.URL.Path[1:])
 
 			if err != nil {
+				// file not found
+				Render(w, http.StatusNotFound)
 				return
 			} else if info.IsDir() {
 				Render(w, 403)

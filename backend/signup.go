@@ -17,13 +17,12 @@ func SignupHandler(DB *sql.DB) http.HandlerFunc {
 	usernameRe := regexp.MustCompile(`^[A-Za-z0-9_-]+$`)
 
 	emailRe := regexp.MustCompile(
-		`^[aA-Z-z0-9](?:[A-Za-z0-9._%+\-]{0,63}[A-Za-z0-9_%+\-])?` +
+		`^[A-Za-z0-9](?:[A-Za-z0-9._%+\-]{0,63}[A-Za-z0-9])?` +
 			`@` +
 			`[A-Za-z0-9](?:[A-Za-z0-9\-]{0,61}[A-Za-z0-9])?` +
 			`(?:\.[A-Za-z0-9](?:[A-Za-z0-9\-]{0,61}[A-Za-z0-9])?)+$`)
 
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		if len(r.URL.Path) > 2048 || strings.Contains(r.URL.Path, "\x00") || strings.Contains(r.URL.Path, "..") {
 			log.Printf("Suspicious signup path: %q", r.URL.Path)
 			Render(w, http.StatusBadRequest)
@@ -162,8 +161,8 @@ func hexEncode(b []byte) string {
 	const hexChars = "0123456789abcdef"
 	out := make([]byte, len(b)*2)
 	for i, v := range b {
-		out[i*2] = hexChars[v>>4]
-		out[i*2+1] = hexChars[v&0x0f]
+		out[i*2] = hexChars[int(v>>4)]
+		out[i*2+1] = hexChars[int(v&0x0f)]
 	}
 	return string(out)
 }

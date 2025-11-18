@@ -71,9 +71,16 @@
         <li><a href="/post" >All Posts</a></li>
         {{if .Username}}
           <li><a href="/post?Categories={{.Username}}">My Posts</a></li>
+         
+
         {{end}}
         {{range .Categories}}
+        
+        {{if eq . "Liked"}}
+          <li><a href="/post?Categories={{.}}">Liked Posts</a></li>
+        {{else}}
           <li><a href="/post?Categories={{.}}">{{.}}</a></li>
+          {{end}}
         {{end}}
       </ul>
     </aside>

@@ -59,6 +59,7 @@ func init() {
 		post_id INTEGER NOT NULL,
 		user_id INTEGER NOT NULL,
 		comment TEXT NOT NULL,
+
 		created_at DATETIME DEFAULT (datetime('now')),
 		FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE,
 		FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -75,6 +76,7 @@ func init() {
 		FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE,
 		FOREIGN KEY(comment_id) REFERENCES comments(id) ON DELETE CASCADE
 	);
+	
 	CREATE TABLE IF NOT EXISTS post_categories (
     post_id INTEGER,
     category_id INTEGER,

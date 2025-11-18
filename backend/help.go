@@ -102,6 +102,7 @@ func checkuser(DB *sql.DB, userid int64) bool {
 func InsertCategoriId(DB *sql.DB, post_id int64, categories []string) {
 	var categorie_id int
 	for _, categorie := range categories {
+		fmt.Println("Inserting category:", categorie, "for post ID:", post_id)
 		err := DB.QueryRow(`SELECT id FROM categories WHERE categorie = ?`, categorie).Scan(&categorie_id)
 		if err != nil {
 			return
@@ -115,7 +116,7 @@ func InsertCategoriId(DB *sql.DB, post_id int64, categories []string) {
 
 func GetPost(DB *sql.DB, category, username string, UserId int64) []Datapost {
 	posts := []Datapost{}
-
+	fmt.Println("Fetching posts for category:", category, "and username:", UserId)
 	Categorie_Id := CategoriesId[category]
 
 	var row *sql.Rows
@@ -124,7 +125,15 @@ func GetPost(DB *sql.DB, category, username string, UserId int64) []Datapost {
 		row, err = DB.Query(`SELECT title,content,id FROM posts`)
 	} else if category == username {
 		row, err = DB.Query(`SELECT title,content,id FROM posts WHERE user_id=?`, UserId)
-	} else {
+	} else if category == "liked" {
+
+		row, err = DB.Query(`SELECT posts.title,posts.content,posts.id
+	FROM posts
+	JOIN likes ON likes.post_id=posts.id
+	WHERE likes.kind=1 AND likes.user_id=?
+	`, UserId)
+	}else{
+
 		row, err = DB.Query(`SELECT posts.title,posts.content,posts.id
 	FROM posts
 	JOIN post_categories ON post_categories.post_id=posts.id
@@ -293,7 +302,7 @@ func CheckFiltere(query string, username string) bool {
 	if Filtre[0] != "Categories" {
 		return false
 	}
-	categories := []string{"", "Technology", "Science", "Education", "Engineering", "Entertainment", username}
+	categories := []string{"liked", "Technology", "Science", "Education", "Engineering", "Entertainment", username}
 	for _, categorie := range categories {
 		if categorie == Filtre[len(Filtre)-1] {
 			return true
