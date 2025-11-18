@@ -123,7 +123,7 @@ func init() {
 		}
 		WriteCategories(DB)
 	}
-	InsertCategorie()
+	
 	// if !tableExists(DB, "method_post") {
 	// 	method_post := `CREATE TABLE IF NOT EXISTS method_post(
 	// 	id INTEGER PRIMARY KEY AUTOINCREMENT,

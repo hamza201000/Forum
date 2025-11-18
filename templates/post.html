@@ -123,11 +123,12 @@
           {{end}}
           <div class="comments-list">
             {{range .Comments}}
-            <div class="comment">
+            <div id="comment{{.Idcomment}}" class="comment" style="scroll-margin-top: 100px; " >
               <span class="comment-user">{{.Username}}:</span>
               <span class="comment-content">{{.Content}}</span>
               <span class="comment-date">{{.CreatedAt}}</span>
-               {{if .Username}}
+               {{if $.Username}}
+
               <div class="interaction">
                 <form method="POST" action="/commentlike">
                   <input type="hidden" name="comment_id" value="{{.Idcomment}}">

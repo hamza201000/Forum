@@ -33,8 +33,6 @@ type Message_Error struct {
 	Message string
 }
 
-var CategoriesId = make(map[string]int)
-
 func tableExists(DB *sql.DB, tableName string) bool {
 	query := `SELECT name FROM sqlite_master WHERE type='table' AND name=?;`
 	row := DB.QueryRow(query, tableName)
@@ -43,13 +41,15 @@ func tableExists(DB *sql.DB, tableName string) bool {
 	return err == nil
 }
 
-func InsertCategorie() {
+func InsertCategorie(category string) int {
 	categories := []string{"Technology", "Science", "Education", "Engineering", "Entertainment"}
-	i := 1
-	for _, categorie := range categories {
-		CategoriesId[categorie] = i
-		i++
+
+	for i, catgore := range categories {
+		if category == catgore {
+			return i + 1
+		}
 	}
+	return 0
 }
 
 func InsertNamePost(DB *sql.DB) []string {
@@ -89,23 +89,10 @@ func WriteCategories(DB *sql.DB) {
 	}
 }
 
-func checkuser(DB *sql.DB, userid int64) bool {
-	var token string
-	err := DB.QueryRow(`SELECT token FROM sessions WHERE user_id = ? `, userid).Scan(&token)
-	if err == sql.ErrNoRows {
-		return true
-	}
-	_, err = DB.Exec(`DELETE FROM sessions WHERE user_id = ? `, userid)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return false
-}
-
 func InsertCategoriId(DB *sql.DB, post_id int64, categories []string) {
 	var categorie_id int
 	for _, categorie := range categories {
-		fmt.Println("Inserting category:", categorie, "for post ID:", post_id)
+
 		err := DB.QueryRow(`SELECT id FROM categories WHERE categorie = ?`, categorie).Scan(&categorie_id)
 		if err != nil {
 			return
@@ -119,28 +106,27 @@ func InsertCategoriId(DB *sql.DB, post_id int64, categories []string) {
 
 func GetPost(DB *sql.DB, category, username string, UserId int64) []Datapost {
 	posts := []Datapost{}
-	Categorie_Id := CategoriesId[category]
+	Categorie_Id := InsertCategorie(category)
 	var row *sql.Rows
 	var err error
 	if category == "" {
-		row, err = DB.Query(`SELECT title,content,id FROM posts`)
+		row, err = DB.Query(`SELECT title,content,id FROM posts ORDER BY created_at DESC`)
 	} else if category == username {
-		row, err = DB.Query(`SELECT title,content,id FROM posts WHERE user_id=?`, UserId)
+		row, err = DB.Query(`SELECT title,content,id FROM posts WHERE user_id=? ORDER BY created_at DESC;`, UserId)
 	} else if category == "liked" {
 		row, err = DB.Query(`SELECT posts.title,posts.content,posts.id
 	FROM posts
 	JOIN likes ON likes.post_id=posts.id
-	WHERE likes.kind=1 AND likes.user_id=?
-	`, UserId)
+	WHERE likes.kind=1 AND likes.user_id=? ORDER BY likes.post_id DESC;`, UserId)
 	} else {
 		row, err = DB.Query(`SELECT posts.title,posts.content,posts.id
 	FROM posts
 	JOIN post_categories ON post_categories.post_id=posts.id
-	WHERE post_categories.category_id=?
-	`, Categorie_Id)
+	WHERE post_categories.category_id=? ORDER BY created_at DESC;`, Categorie_Id)
 	}
 
 	if err != nil {
+
 		log.Fatal(err)
 		return nil
 	}
@@ -165,7 +151,6 @@ func GetPost(DB *sql.DB, category, username string, UserId int64) []Datapost {
 	return posts
 }
 
-// ////
 func GetPostById(DB *sql.DB, PostId int) []Datapost {
 	posts := []Datapost{}
 	row, err := DB.Query(`SELECT title,content,id FROM posts WHERE id =?`, PostId)
@@ -312,24 +297,21 @@ func CheckDataPost(DB *sql.DB, r *http.Request, errorMsg string) PostPageData {
 
 func CheckFiltere(w http.ResponseWriter, r *http.Request, query string, username string) bool {
 	Filtre := strings.Split(query, "=")
-	if Filtre[0] != "Categories" {
-		if Filtre[len(Filtre)-1] == "liked" && username == "" {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-		}
-		if Filtre[0] == "Categories" && Filtre[len(Filtre)-1] == "" && username == "" {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-		}
-		if Filtre[0] != "Categories" || Filtre[len(Filtre)-1] == "" {
-			return false
-		}
+	if Filtre[len(Filtre)-1] == "liked" && username == "" {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+	}
+	if Filtre[0] == "Categories" && Filtre[len(Filtre)-1] == "" && username == "" {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+	}
+	if Filtre[0] != "Categories" || Filtre[len(Filtre)-1] == "" {
+		return false
+	}
 
-		categories := []string{"liked", "Technology", "Science", "Education", "Engineering", "Entertainment", username}
-		for _, categorie := range categories {
-			if categorie == Filtre[len(Filtre)-1] {
-				return true
-			}
+	categories := []string{"liked", "Technology", "Science", "Education", "Engineering", "Entertainment", username}
+	for _, categorie := range categories {
+		if categorie == Filtre[len(Filtre)-1] {
+			return true
 		}
 	}
 	return false
-
 }

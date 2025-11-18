@@ -76,7 +76,9 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 			}
 
 			query := r.URL.RawQuery
+
 			if query != "" && !CheckFiltere(w, r, query, username) {
+
 				Render(w, 404)
 				return
 			}
@@ -135,12 +137,22 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 				// category := r.FormValue("category_ids")
 
 				if len(title[0]) == 0 {
-					errorMsg := "⚠️ Your post needs a title. Please enter one."
-					RenderTemplate(w, "post.html", CheckDataPost(DB, r, errorMsg))
+					RenderTemplate(w, "post.html", CheckDataPost(DB, r, "⚠️ Your post needs a title."))
 					return
-				} else if len(content[0]) == 0 {
-					errorMsg := "⚠️ Your post needs some content. Please type something to continue."
-					RenderTemplate(w, "post.html", CheckDataPost(DB, r, errorMsg))
+				}
+
+				if len(title[0]) > 20 {
+					RenderTemplate(w, "post.html", CheckDataPost(DB, r, "⚠️ Title too long (max 30 characters)."))
+					return
+				}
+
+				if len(content[0]) == 0 {
+					RenderTemplate(w, "post.html", CheckDataPost(DB, r, "⚠️ Your post needs some content."))
+					return
+				}
+
+				if len(content[0]) < 20 {
+					RenderTemplate(w, "post.html", CheckDataPost(DB, r, "⚠️ Content must be at least 20 characters."))
 					return
 				}
 
