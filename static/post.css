@@ -328,16 +328,20 @@ fieldset input[type="checkbox"] {
   color: #2d3748;
   margin-bottom: 1rem;
   font-size: 1.5rem;
+  text-align: center;
 }
 
 .post-content {
   color: #4a5568;
   margin-bottom: 1.5rem;
   line-height: 1.8;
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  padding: 15px;
 }
 
 /* Interaction Buttons */
-.interaction  {
+.interaction {
   display: flex;
   gap: 1rem;
   align-items: center;
@@ -472,4 +476,5 @@ fieldset input[type="checkbox"] {
 .no-posts h2 {
   color: #667eea;
 }
+
 

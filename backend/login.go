@@ -67,8 +67,9 @@ func LoginHandler(DB *sql.DB) http.HandlerFunc {
 		var passwordHash string
 		err = DB.QueryRow("SELECT id, password_hash FROM users WHERE email = ? OR username = ?", email, email).Scan(&userID, &passwordHash)
 		if err == sql.ErrNoRows {
-			http.Error(w, "Invalid email or password", http.StatusBadRequest)
 
+			templates.ExecuteTemplate(w, "login.html", map[string]string{"Error": "Invalid email or password"})
+			
 			return
 		}
 		if err != nil {
