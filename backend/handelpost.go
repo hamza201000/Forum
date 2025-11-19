@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 )
 
 type PostPageData struct {
@@ -79,16 +78,13 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 				return
 			}
 
-			
-				post := GetPost(DB, Categories, username, userid)
+			post := GetPost(DB, Categories, username, userid)
 
-				Data = &PostPageData{
-					Username:   username,
-					Posts:      post,
-					Categories: []string{"Technology", "Science", "Education", "Engineering", "Entertainment"},
-				}
-
-			
+			Data = &PostPageData{
+				Username:   username,
+				Posts:      post,
+				Categories: []string{"Technology", "Science", "Education", "Engineering", "Entertainment"},
+			}
 
 			if err = tmp.Execute(w, Data); err != nil {
 				log.Printf("template execute error: %v", err)
@@ -142,7 +138,7 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 				}
 
 				// var category []string
-				category,categoryok := r.Form["category_ids"]
+				category, categoryok := r.Form["category_ids"]
 				if !categoryok {
 
 					Render(w, http.StatusBadRequest)

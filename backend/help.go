@@ -228,7 +228,9 @@ func Render(w http.ResponseWriter, status int) {
 	// Parse the error template file
 	tmp, err := template.ParseFiles("templates/errorpage.html")
 	// Set the HTTP status code in the response
+	fmt.Println("ttttttttttttttttttttttttttttttttttttttt")
 	w.WriteHeader(status)
+	fmt.Println("uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu")
 	// If there is an error loading the template, show a simple error message
 	if err != nil {
 		http.Error(w, "page not found", http.StatusNotFound)

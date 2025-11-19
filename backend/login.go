@@ -36,14 +36,12 @@ func LoginHandler(DB *sql.DB) http.HandlerFunc {
 			}
 		}
 
-		// --- Method Validation ---
-		if r.Method != http.MethodGet && r.Method != http.MethodPost {
-			Render(w, http.StatusMethodNotAllowed)
-			return
-		}
-
 		// --- GET Method ---
 		if r.Method == http.MethodGet {
+			if r.URL.Query().Get("email") != "" || r.URL.Query().Get("password") != "" {
+				Render(w, http.StatusBadRequest)
+				return
+			}
 			if err := templates.ExecuteTemplate(w, "login.html", map[string]string{"Error": ""}); err != nil {
 				log.Printf("Template render error (GET /login): %v", err)
 				Render(w, http.StatusInternalServerError)
@@ -56,16 +54,25 @@ func LoginHandler(DB *sql.DB) http.HandlerFunc {
 			Render(w, http.StatusBadRequest)
 			return
 		}
-		email := r.FormValue("email")
-		password := r.FormValue("password")
-		if email == "" || password == "" {
+		email ,ok:= r.Form["email"]
+		if !ok {
+			Render(w, http.StatusBadRequest)
+			return
+		}
+		password := r.Form["password"]
+		if !ok {
+			Render(w, http.StatusBadRequest)
+			return
+		}
+
+		if email[0] == "" || password[0] == "" {
 			templates.ExecuteTemplate(w, "login.html", map[string]string{"Error": "Email and password required"})
 			return
 		}
 
 		var userID int64
 		var passwordHash string
-		err = DB.QueryRow("SELECT id, password_hash FROM users WHERE email = ? OR username = ?", email, email).Scan(&userID, &passwordHash)
+		err = DB.QueryRow("SELECT id, password_hash FROM users WHERE email = ? OR username = ?", email[0], email[0]).Scan(&userID, &passwordHash)
 		if err == sql.ErrNoRows {
 
 			templates.ExecuteTemplate(w, "login.html", map[string]string{"Error": "Invalid email or password"})
@@ -77,7 +84,7 @@ func LoginHandler(DB *sql.DB) http.HandlerFunc {
 			Render(w, http.StatusInternalServerError)
 			return
 		}
-		if err := bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password)); err != nil {
+		if err := bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password[0])); err != nil {
 			templates.ExecuteTemplate(w, "login.html", map[string]string{"Error": "Invalid email or password"})
 			return
 		}

@@ -33,14 +33,14 @@ func SignupHandler(DB *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		// --- Method Validation ---
-		if r.Method != http.MethodGet && r.Method != http.MethodPost {
-			Render(w, http.StatusMethodNotAllowed)
-			return
-		}
-
+		
+		
 		// --- GET Method ---
 		if r.Method == http.MethodGet {
+			if r.URL.Query().Get("username") != "" || r.URL.Query().Get("email") != ""|| r.URL.Query().Get("password") != "" {
+				Render(w, http.StatusBadRequest)
+				return
+			}
 			if err := templates.ExecuteTemplate(w, "signup.html", map[string]string{"Error": ""}); err != nil {
 				log.Printf("Template render error (GET /signup): %v", err)
 				Render(w, http.StatusInternalServerError)
@@ -54,29 +54,41 @@ func SignupHandler(DB *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		username := r.FormValue("username")
-		email := r.FormValue("email")
-		password := r.FormValue("password")
+		username, ok := r.Form["username"]
+		if !ok {
+			Render(w, http.StatusBadRequest)
+			return
+		}
+		email := r.Form["email"]
+		if !ok {
+			Render(w, http.StatusBadRequest)
+			return
+		}
+		password, ok := r.Form["password"]
+		if !ok {
+			Render(w, http.StatusBadRequest)
+			return
+		}
 
-		if username == "" || email == "" || password == "" {
+		if username[0] == "" || email[0] == "" || password[0] == "" {
 			templates.ExecuteTemplate(w, "signup.html", map[string]string{"Error": "All fields are required"})
 			return
 		}
-		if !emailRe.MatchString(email) {
+		if !emailRe.MatchString(email[0]) {
 			templates.ExecuteTemplate(w, "signup.html", map[string]string{"Error": "Invalid email"})
 			return
 		}
-		if !usernameRe.MatchString(username) {
+		if !usernameRe.MatchString(username[0]) {
 			templates.ExecuteTemplate(w, "signup.html", map[string]string{"Error": "Invalid username"})
 			return
 		}
-		if len(password) < 8 {
+		if len(password[0]) < 8 {
 			templates.ExecuteTemplate(w, "signup.html", map[string]string{"Error": "Password must be >= 8 chars"})
 			return
 		}
 
 		var exists int
-		if err := DB.QueryRow("SELECT COUNT(1) FROM users WHERE email = ?", email).Scan(&exists); err != nil {
+		if err := DB.QueryRow("SELECT COUNT(1) FROM users WHERE email = ?", email[0]).Scan(&exists); err != nil {
 			log.Printf("DB error (email check): %v", err)
 			Render(w, http.StatusInternalServerError)
 			return
@@ -86,7 +98,7 @@ func SignupHandler(DB *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+		hash, err := bcrypt.GenerateFromPassword([]byte(password[0]), bcrypt.DefaultCost)
 		if err != nil {
 			log.Printf("Password hash error: %v", err)
 			Render(w, http.StatusInternalServerError)
@@ -101,7 +113,7 @@ func SignupHandler(DB *sql.DB) http.HandlerFunc {
 		}
 		defer tx.Rollback()
 
-		res, err := tx.Exec("INSERT INTO users (username, email, password_hash, created_at) VALUES (?, ?, ?, datetime('now'))", username, email, string(hash))
+		res, err := tx.Exec("INSERT INTO users (username, email, password_hash, created_at) VALUES (?, ?, ?, datetime('now'))", username[0], email[0], string(hash))
 		if err != nil {
 			log.Printf("Insert user error: %v", err)
 			Render(w, http.StatusInternalServerError)
