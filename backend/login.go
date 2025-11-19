@@ -69,7 +69,7 @@ func LoginHandler(DB *sql.DB) http.HandlerFunc {
 		if err == sql.ErrNoRows {
 
 			templates.ExecuteTemplate(w, "login.html", map[string]string{"Error": "Invalid email or password"})
-			
+
 			return
 		}
 		if err != nil {

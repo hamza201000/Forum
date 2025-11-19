@@ -49,10 +49,6 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 			Value: r.RequestURI,
 			Path:  "/post",
 		})
-		IdPst, err := strconv.Atoi(r.URL.Query().Get("id"))
-		if err != nil {
-			IdPst = 0
-		}
 		if r.URL.Path != "/post" {
 			Render(w, 404)
 			return
@@ -83,21 +79,7 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 				return
 			}
 
-			if IdPst != 0 {
-				post := GetPostById(DB, IdPst)
-				if len(post) == 0 {
-					Render(w, 404)
-					return
-				}
-
-				Data = &PostPageData{
-					Username:   username,
-					Posts:      post,
-					Categories: []string{"Technology", "Science", "Education", "Engineering", "Entertainment"},
-				}
-
-			} else {
-
+			
 				post := GetPost(DB, Categories, username, userid)
 
 				Data = &PostPageData{
@@ -106,7 +88,7 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 					Categories: []string{"Technology", "Science", "Education", "Engineering", "Entertainment"},
 				}
 
-			}
+			
 
 			if err = tmp.Execute(w, Data); err != nil {
 				log.Printf("template execute error: %v", err)
@@ -124,14 +106,17 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 				return
 			} else {
 				if err := r.ParseForm(); err != nil {
-					http.Error(w, "Error parsing form", http.StatusBadRequest)
+
+					Render(w, http.StatusBadRequest)
 					return
 				}
 				title, titleOK := r.Form["title"]
 				content, contentOK := r.Form["content"]
 
 				if !titleOK || !contentOK {
-					http.Error(w, "Missing required fields", http.StatusBadRequest)
+
+					Render(w, http.StatusBadRequest)
+
 					return
 				}
 				// category := r.FormValue("category_ids")
@@ -157,7 +142,13 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 				}
 
 				// var category []string
-				category := r.Form["category_ids"]
+				category,categoryok := r.Form["category_ids"]
+				if !categoryok {
+
+					Render(w, http.StatusBadRequest)
+
+					return
+				}
 				if len(category) == 0 {
 					errorMsg := "⚠️ You must choose one category or more"
 

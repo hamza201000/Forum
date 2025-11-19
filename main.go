@@ -6,10 +6,12 @@ import (
 	"net/http"
 
 	"forum/backend"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
-	DB, err := sql.Open("sqlite", "forum.db")
+	DB, err := sql.Open("sqlite3", "forum.db")
 	if err != nil {
 		log.Fatal(err)
 	}
