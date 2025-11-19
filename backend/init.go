@@ -17,6 +17,10 @@ func init() {
 	DB.SetConnMaxLifetime(time.Minute * 10)
 
 	// PRAGMA settings: foreign keys must be enabled per-connection; easiest: exec now (works for the connection used)
+	_, err = DB.Exec("PRAGMA journal_mode=WAL;")
+	if err != nil {
+		log.Fatal("failed to enable foreign keys:", err)
+	}
 	_, err = DB.Exec("PRAGMA foreign_keys = ON;")
 	if err != nil {
 		log.Fatal("failed to enable foreign keys:", err)
@@ -27,7 +31,7 @@ func init() {
 	schema := `
 	CREATE TABLE IF NOT EXISTS users (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		username TEXT NOT NULL,
+		username TEXT NOT NULL UNIQUE,
 		email TEXT NOT NULL UNIQUE,
 		password_hash TEXT NOT NULL,
 		created_at DATETIME DEFAULT (datetime('now'))
