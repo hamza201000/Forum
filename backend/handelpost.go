@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 )
 
 type PostPageData struct {
@@ -106,8 +107,8 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 					Render(w, http.StatusBadRequest)
 					return
 				}
-				title, titleOK := r.Form["title"]
-				content, contentOK := r.Form["content"]
+				title, titleOK := r.Form[strings.TrimSpace("title")]
+				content, contentOK := r.Form[strings.TrimSpace("content")]
 
 				if !titleOK || !contentOK {
 

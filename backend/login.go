@@ -54,12 +54,12 @@ func LoginHandler(DB *sql.DB) http.HandlerFunc {
 			Render(w, http.StatusBadRequest)
 			return
 		}
-		email ,ok:= r.Form["email"]
+		email, ok := r.Form[strings.TrimSpace("email")]
 		if !ok {
 			Render(w, http.StatusBadRequest)
 			return
 		}
-		password := r.Form["password"]
+		password, ok := r.Form[strings.TrimSpace("password")]
 		if !ok {
 			Render(w, http.StatusBadRequest)
 			return

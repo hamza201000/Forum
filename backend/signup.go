@@ -54,17 +54,17 @@ func SignupHandler(DB *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		username, ok := r.Form["username"]
+		username, ok := r.Form[strings.TrimSpace("username")]
 		if !ok {
 			Render(w, http.StatusBadRequest)
 			return
 		}
-		email := r.Form["email"]
+		email := r.Form[strings.TrimSpace("email")]
 		if !ok {
 			Render(w, http.StatusBadRequest)
 			return
 		}
-		password, ok := r.Form["password"]
+		password, ok := r.Form[strings.TrimSpace("password")]
 		if !ok {
 			Render(w, http.StatusBadRequest)
 			return
