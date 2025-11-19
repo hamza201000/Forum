@@ -10,7 +10,10 @@
   <!-- Top bar -->
   <div class="bar">
     {{if .Username}}
-      <a href="/logout" class="bar-link">Logout</a>
+    <form method="POST" action="/logout">
+  <button type="submit" class="bar-link">Logout</button>
+</form>
+
       <p>WELCOME {{.Username}}</p>
     {{else}}
       <a href="/login" class="bar-link">Login</a>

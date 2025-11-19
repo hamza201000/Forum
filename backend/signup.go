@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"bytes"
 	"crypto/rand"
 	"database/sql"
 	"log"
@@ -39,11 +40,22 @@ func SignupHandler(DB *sql.DB) http.HandlerFunc {
 				Render(w, http.StatusBadRequest)
 				return
 			}
-			if err := templates.ExecuteTemplate(w, "signup.html", map[string]string{"Error": ""}); err != nil {
+			var buf bytes.Buffer
+
+			err := templates.ExecuteTemplate(&buf, "signup.html", map[string]string{
+				"Error": "",
+			})
+			if err != nil {
 				log.Printf("Template render error (GET /signup): %v", err)
 				Render(w, http.StatusInternalServerError)
+				return
+			}
+
+			if _, err := buf.WriteTo(w); err != nil {
+				log.Printf("Write error (GET /signup): %v", err)
 			}
 			return
+
 		}
 
 		// --- POST Method ---
@@ -102,7 +114,17 @@ func SignupHandler(DB *sql.DB) http.HandlerFunc {
 			templates.ExecuteTemplate(w, "signup.html", map[string]string{"Error": "Email already taken"})
 			return
 		}
-
+		exists = 0
+		if err := DB.QueryRow("SELECT COUNT(1) FROM users WHERE username = ?", username[0]).Scan(&exists); err != nil {
+			log.Printf("DB error (email check): %v", err)
+			Render(w, http.StatusInternalServerError)
+			return
+		}
+		if exists > 0 {
+			w.WriteHeader(http.StatusNonAuthoritativeInfo)
+			templates.ExecuteTemplate(w, "signup.html", map[string]string{"Error": "Username already taken"})
+			return
+		}
 		hash, err := bcrypt.GenerateFromPassword([]byte(password[0]), bcrypt.DefaultCost)
 		if err != nil {
 			log.Printf("Password hash error: %v", err)

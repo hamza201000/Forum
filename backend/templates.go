@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"bytes"
 	"html/template"
 	"log"
 	"net/http"
@@ -12,7 +13,7 @@ var templates *template.Template
 
 func LoadTemplates(pattern string) {
 	var err error
-	templates, err = template.ParseGlob(pattern) 
+	templates, err = template.ParseGlob(pattern)
 	if err != nil {
 		log.Fatalf("Failed to parse templates: %v", err)
 	}
@@ -34,9 +35,16 @@ func RenderTemplate(w http.ResponseWriter, name string, data any) {
 		return
 	}
 
-	err := templates.ExecuteTemplate(w, name, data)
+	var buf bytes.Buffer
+
+	err := templates.ExecuteTemplate(&buf, name, data)
 	if err != nil {
 		http.Error(w, "Template rendering error: "+err.Error(), http.StatusInternalServerError)
 		log.Println("Render error:", err)
+		return
+	}
+
+	if _, err := buf.WriteTo(w); err != nil {
+		log.Println("Write error:", err)
 	}
 }

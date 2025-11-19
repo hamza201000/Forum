@@ -23,7 +23,7 @@ func LogoutHandler(DB *sql.DB) http.HandlerFunc {
 		}
 
 		// Method validation
-		if r.Method != http.MethodGet && r.Method != http.MethodPost {
+		if r.Method != http.MethodPost {
 			Render(w, http.StatusMethodNotAllowed)
 			return
 		}

@@ -13,7 +13,8 @@ func HandleLike(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Vérifie la méthode
 		if r.Method != http.MethodPost {
-			http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
+			
+			Render(w,http.StatusMethodNotAllowed)
 			return
 		}
 
@@ -31,7 +32,7 @@ func HandleLike(db *sql.DB) http.HandlerFunc {
 		err = db.QueryRow("SELECT id FROM posts WHERE id = ?", postID).Scan(&dummy)
 
 		if err == sql.ErrNoRows {
-			http.Redirect(w, r, r.Referer(), http.StatusSeeOther)
+			Render(w, http.StatusBadRequest)
 			return
 		}
 
@@ -41,7 +42,8 @@ func HandleLike(db *sql.DB) http.HandlerFunc {
 			return
 		}
 		if postID == "" || value == "" {
-			http.Error(w, "Paramètres manquants", http.StatusBadRequest)
+			
+			Render(w,http.StatusBadRequest)
 			return
 		}
 
@@ -63,8 +65,8 @@ func HandleLike(db *sql.DB) http.HandlerFunc {
 		}
 
 		if err != nil {
-			fmt.Println(err)
-			http.Error(w, "Erreur base de données", http.StatusInternalServerError)
+			
+			Render(w,http.StatusInternalServerError)
 			return
 		}
 
@@ -77,7 +79,8 @@ func HandleCommentLike(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Vérifie la méthode
 		if r.Method != http.MethodPost {
-			http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
+			
+			Render(w, http.StatusMethodNotAllowed)
 			return
 		}
 		// Vérifie la session utilisateur
@@ -93,7 +96,7 @@ func HandleCommentLike(db *sql.DB) http.HandlerFunc {
 		err = db.QueryRow("SELECT id FROM comments WHERE id = ?", commentID).Scan(&dummy)
 
 		if err == sql.ErrNoRows {
-			http.Redirect(w, r, r.Referer(), http.StatusSeeOther)
+			Render(w, http.StatusBadRequest)
 			return
 		}
 
@@ -103,7 +106,8 @@ func HandleCommentLike(db *sql.DB) http.HandlerFunc {
 			return
 		}
 		if commentID == "" || value == "" {
-			http.Error(w, "Paramètres manquants", http.StatusBadRequest)
+			
+			Render(w, http.StatusBadRequest)
 			return
 		}
 		// Vérifie si un like existe déjà
@@ -124,8 +128,8 @@ func HandleCommentLike(db *sql.DB) http.HandlerFunc {
 		}
 
 		if err != nil {
-			fmt.Println(err)
-			http.Error(w, "Erreur base de données", http.StatusInternalServerError)
+			
+			Render(w, http.StatusInternalServerError)
 			return
 		}
 

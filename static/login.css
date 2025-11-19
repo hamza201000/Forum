@@ -18,6 +18,8 @@ body {
 
 /* Box Login/Signup (même style) */
 .login-box {
+    display: flex;
+    flex-direction: column;
     background: #95b3e8;
   color: white;
   text-align: center;
@@ -68,6 +70,7 @@ button {
     font-size: 1.1rem;
     cursor: pointer;
     transition: 0.3s ease;
+    margin: 15px;
 }
 
 /* Hover bouton */

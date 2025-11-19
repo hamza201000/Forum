@@ -25,7 +25,7 @@ func HandleAddComment(db *sql.DB) http.HandlerFunc {
 		postID := r.FormValue("post_id")
 		content := r.FormValue("comment")
 		if postID == "" || content == "" {
-			
+
 			Render(w, http.StatusBadRequest)
 			return
 		}
@@ -33,14 +33,14 @@ func HandleAddComment(db *sql.DB) http.HandlerFunc {
 		err = db.QueryRow("SELECT id FROM posts WHERE id = ?", postID).Scan(&dummy)
 
 		if err == sql.ErrNoRows {
-			http.Redirect(w, r, r.Referer(), http.StatusSeeOther)
+			Render(w, http.StatusBadRequest)
 			return
 		}
 		// Insérer le commentaire
 		_, err = db.Exec("INSERT INTO comments (post_id, user_id, comment) VALUES (?, ?, ?)", postID, userID, content)
 		if err != nil {
 			fmt.Println(err)
-		
+
 			Render(w, http.StatusInternalServerError)
 			return
 		}
@@ -53,9 +53,9 @@ func HandleAddComment(db *sql.DB) http.HandlerFunc {
 			WHERE c.post_id = ?
 			ORDER BY c.created_at DESC`, postID)
 		if err != nil {
-			
+
 			Render(w, http.StatusInternalServerError)
-			
+
 			return
 		}
 		defer rows.Close()

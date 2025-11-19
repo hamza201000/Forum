@@ -186,12 +186,10 @@ func GetComment(DB *sql.DB, PostId int) []DataComment {
 			WHERE c.post_id = ?
 			ORDER BY c.created_at DESC`, PostId)
 	if err != nil {
-		fmt.Println(err)
-		// http.Error(w, "Erreur base de données", http.StatusInternalServerError)
+		log.Fatal(err)
 		return nil
 	}
 	defer rows.Close()
-	// On renvoie du HTML directement pour mettre à jour dynamiquement
 
 	for rows.Next() {
 		var DataComments DataComment

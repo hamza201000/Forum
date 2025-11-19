@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"bytes"
 	"database/sql"
 	"log"
 	"net/http"
@@ -42,11 +43,22 @@ func LoginHandler(DB *sql.DB) http.HandlerFunc {
 				Render(w, http.StatusBadRequest)
 				return
 			}
-			if err := templates.ExecuteTemplate(w, "login.html", map[string]string{"Error": ""}); err != nil {
+			var buf bytes.Buffer
+
+			err := templates.ExecuteTemplate(&buf, "login.html", map[string]string{
+				"Error": "",
+			})
+			if err != nil {
 				log.Printf("Template render error (GET /login): %v", err)
 				Render(w, http.StatusInternalServerError)
+				return
+			}
+
+			if _, err := buf.WriteTo(w); err != nil {
+				log.Printf("Write error (GET /login): %v", err)
 			}
 			return
+
 		}
 
 		// --- POST Method ---

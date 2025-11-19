@@ -8,6 +8,7 @@
   
 </head>
 <body>
+  <div>
   <div class="login-box">
     <h2>Login</h2>
     <form method="POST" action="/login">
@@ -18,14 +19,17 @@
     
     <div class="link">
   <p>Don’t have an account? <a href="/signup">Sign up</a></p>
-  button><a class="rtnhome" href="/">Return to home</a></button>
-</div>
 
-  </div>
+
+</div>
   <div class="error">
 {{if .Error}}
   {{.Error}}
 {{end}}
+
 </div>
+</div>
+<button><a class="rtnhome" href="/">Return to home</a></button>
+  </div>
 </body>
 </html>

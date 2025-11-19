@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"bytes"
 	"database/sql"
 	"fmt"
 	"html/template"
@@ -26,11 +27,13 @@ func Handler(DB *sql.DB) http.HandlerFunc {
 		if r.URL.Path != "/" {
 			Render(w, 404)
 			return
+
 		} else if r.Method != http.MethodGet {
 			// return 405 for non-GET methods
 			Render(w, http.StatusMethodNotAllowed)
 			return
 		}
+		
 		http.Redirect(w, r, "/post", http.StatusSeeOther)
 	}
 }
@@ -87,11 +90,18 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 				Categories: []string{"Technology", "Science", "Education", "Engineering", "Entertainment"},
 			}
 
-			if err = tmp.Execute(w, Data); err != nil {
+			var buf bytes.Buffer
+			if err := tmp.Execute(&buf, Data); err != nil {
 				log.Printf("template execute error: %v", err)
 				Render(w, http.StatusInternalServerError)
 				return
 			}
+
+			_, err := buf.WriteTo(w)
+			if err != nil {
+				log.Printf("write error: %v", err)
+			}
+
 			return
 
 		}
