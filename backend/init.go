@@ -4,8 +4,6 @@ import (
 	"database/sql"
 	"log"
 	"time"
-
-	
 )
 
 func init() {
@@ -106,6 +104,7 @@ func init() {
 	-- Partial unique indexes to prevent duplicate likes for same target
 	CREATE UNIQUE INDEX IF NOT EXISTS uidx_likes_user_post ON likes(user_id, post_id) WHERE post_id IS NOT NULL;
 	CREATE UNIQUE INDEX IF NOT EXISTS uidx_likes_user_comment ON likes(user_id, comment_id) WHERE comment_id IS NOT NULL;
+	CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
 	`
 
 	_, err = DB.Exec(schema)
@@ -123,7 +122,7 @@ func init() {
 		}
 		WriteCategories(DB)
 	}
-	
+
 	// if !tableExists(DB, "method_post") {
 	// 	method_post := `CREATE TABLE IF NOT EXISTS method_post(
 	// 	id INTEGER PRIMARY KEY AUTOINCREMENT,

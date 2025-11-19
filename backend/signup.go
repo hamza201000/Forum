@@ -33,11 +33,9 @@ func SignupHandler(DB *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		
-		
 		// --- GET Method ---
 		if r.Method == http.MethodGet {
-			if r.URL.Query().Get("username") != "" || r.URL.Query().Get("email") != ""|| r.URL.Query().Get("password") != "" {
+			if r.URL.Query().Get("username") != "" || r.URL.Query().Get("email") != "" || r.URL.Query().Get("password") != "" {
 				Render(w, http.StatusBadRequest)
 				return
 			}
@@ -54,35 +52,41 @@ func SignupHandler(DB *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		username, ok := r.Form[strings.TrimSpace("username")]
+		username, ok := r.Form[("username")]
 		if !ok {
 			Render(w, http.StatusBadRequest)
 			return
 		}
-		email := r.Form[strings.TrimSpace("email")]
+		email := r.Form[("email")]
 		if !ok {
 			Render(w, http.StatusBadRequest)
 			return
 		}
-		password, ok := r.Form[strings.TrimSpace("password")]
+		password, ok := r.Form[("password")]
 		if !ok {
 			Render(w, http.StatusBadRequest)
 			return
 		}
-
+		username[0] = strings.TrimSpace(username[0])
+		email[0] = strings.TrimSpace(email[0])
+		password[0] = strings.TrimSpace(password[0])
 		if username[0] == "" || email[0] == "" || password[0] == "" {
+			w.WriteHeader(http.StatusNonAuthoritativeInfo)
 			templates.ExecuteTemplate(w, "signup.html", map[string]string{"Error": "All fields are required"})
 			return
 		}
 		if !emailRe.MatchString(email[0]) {
+			w.WriteHeader(http.StatusNonAuthoritativeInfo)
 			templates.ExecuteTemplate(w, "signup.html", map[string]string{"Error": "Invalid email"})
 			return
 		}
 		if !usernameRe.MatchString(username[0]) {
+			w.WriteHeader(http.StatusNonAuthoritativeInfo)
 			templates.ExecuteTemplate(w, "signup.html", map[string]string{"Error": "Invalid username"})
 			return
 		}
 		if len(password[0]) < 8 {
+			w.WriteHeader(http.StatusNonAuthoritativeInfo)
 			templates.ExecuteTemplate(w, "signup.html", map[string]string{"Error": "Password must be >= 8 chars"})
 			return
 		}
@@ -94,6 +98,7 @@ func SignupHandler(DB *sql.DB) http.HandlerFunc {
 			return
 		}
 		if exists > 0 {
+			w.WriteHeader(http.StatusNonAuthoritativeInfo)
 			templates.ExecuteTemplate(w, "signup.html", map[string]string{"Error": "Email already taken"})
 			return
 		}

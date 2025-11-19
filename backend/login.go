@@ -54,18 +54,20 @@ func LoginHandler(DB *sql.DB) http.HandlerFunc {
 			Render(w, http.StatusBadRequest)
 			return
 		}
-		email, ok := r.Form[strings.TrimSpace("email")]
+		email, ok := r.Form["email"]
 		if !ok {
 			Render(w, http.StatusBadRequest)
 			return
 		}
-		password, ok := r.Form[strings.TrimSpace("password")]
+		password, ok := r.Form["password"]
 		if !ok {
 			Render(w, http.StatusBadRequest)
 			return
 		}
-
+		email[0] = strings.TrimSpace(email[0])
+		password[0] = strings.TrimSpace(password[0])
 		if email[0] == "" || password[0] == "" {
+			w.WriteHeader(http.StatusNonAuthoritativeInfo)
 			templates.ExecuteTemplate(w, "login.html", map[string]string{"Error": "Email and password required"})
 			return
 		}
@@ -85,6 +87,7 @@ func LoginHandler(DB *sql.DB) http.HandlerFunc {
 			return
 		}
 		if err := bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password[0])); err != nil {
+			w.WriteHeader(http.StatusNonAuthoritativeInfo)
 			templates.ExecuteTemplate(w, "login.html", map[string]string{"Error": "Invalid email or password"})
 			return
 		}
@@ -97,13 +100,28 @@ func LoginHandler(DB *sql.DB) http.HandlerFunc {
 		}
 		exp := time.Now().Add(24 * time.Hour)
 
-		_, err = DB.Exec("INSERT INTO sessions(token, user_id, expires_at) VALUES (?, ?, ?)", token, userID, exp.Format("2006-01-02 15:04:05"))
+		_, err = DB.Exec("DELETE FROM sessions WHERE user_id = ?", userID)
+		if err != nil {
+			log.Printf("Failed to remove old sessions: %v", err)
+			Render(w, http.StatusInternalServerError)
+			return
+		}
+
+		_, err = DB.Exec(
+			"INSERT INTO sessions(token, user_id, expires_at) VALUES (?, ?, ?)",
+			token, userID, exp.Format("2006-01-02 15:04:05"),
+		)
 		if err != nil {
 			log.Printf("Insert session error: %v", err)
 			Render(w, http.StatusInternalServerError)
 			return
 		}
 
+		if err != nil {
+			log.Printf("Insert session error: %v", err)
+			Render(w, http.StatusInternalServerError)
+			return
+		}
 		http.SetCookie(w, &http.Cookie{
 			Name:     "session_token",
 			Value:    token,

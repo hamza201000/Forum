@@ -36,11 +36,11 @@
 
       <form method="POST" action="/post" class="table-post">
         <label>Add title</label>
-        <input class="title" type="text" name="title" placeholder="Enter your post title" value="{{.Cachetitle}}"> 
+        <input class="title" type="text" name="title" maxlength="30"  placeholder="Enter your post title" value="{{.Cachetitle}}"> 
         <br>
 
         <label>Content</label>
-        <textarea class="content" name="content" placeholder="Write something...">{{if .Cacheconetent}}{{.Cacheconetent}}{{end}}</textarea>
+        <textarea class="content" name="content" maxlength="10000" placeholder="Write something...">{{if .Cacheconetent}}{{.Cacheconetent}}{{end}}</textarea>
 
         <fieldset>
           <legend>Choose categories:</legend>

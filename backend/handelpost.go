@@ -107,8 +107,8 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 					Render(w, http.StatusBadRequest)
 					return
 				}
-				title, titleOK := r.Form[strings.TrimSpace("title")]
-				content, contentOK := r.Form[strings.TrimSpace("content")]
+				title, titleOK := r.Form["title"]
+				content, contentOK := r.Form["content"]
 
 				if !titleOK || !contentOK {
 
@@ -116,14 +116,15 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 
 					return
 				}
-				// category := r.FormValue("category_ids")
+				title[0] = strings.TrimSpace(title[0])
+				content[0] = strings.TrimSpace(content[0])
 
 				if len(title[0]) == 0 {
 					RenderTemplate(w, "post.html", CheckDataPost(DB, r, "⚠️ Your post needs a title."))
 					return
 				}
 
-				if len(title[0]) > 20 {
+				if len(title[0]) > 30 {
 					RenderTemplate(w, "post.html", CheckDataPost(DB, r, "⚠️ Title too long (max 30 characters)."))
 					return
 				}
@@ -133,19 +134,14 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 					return
 				}
 
-				if len(content[0]) < 20 {
+				if len(content[0]) < 20 || len(content[0]) > 10000 {
 					RenderTemplate(w, "post.html", CheckDataPost(DB, r, "⚠️ Content must be at least 20 characters."))
 					return
 				}
 
 				// var category []string
-				category, categoryok := r.Form["category_ids"]
-				if !categoryok {
+				category := r.Form["category_ids"]
 
-					Render(w, http.StatusBadRequest)
-
-					return
-				}
 				if len(category) == 0 {
 					errorMsg := "⚠️ You must choose one category or more"
 
@@ -169,6 +165,7 @@ func HandlePost(DB *sql.DB) http.HandlerFunc {
 				IdPost, err := res.LastInsertId()
 				if err != nil {
 					fmt.Println("Error getting last insert ID:", err)
+					Render(w, http.StatusInternalServerError)
 					return
 				}
 				InsertCategoriId(DB, IdPost, category)

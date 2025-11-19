@@ -40,6 +40,6 @@ func main() {
 	http.HandleFunc("/logout", backend.LogoutHandler(DB))
 	http.HandleFunc("/comment", backend.HandleAddComment(DB))
 
-	log.Println("Server running at http://10.1.4.6:8081")
-	log.Fatal(http.ListenAndServe("10.1.4.6:8081", nil))
+	log.Println("Server running at http://localhost:8081")
+	log.Fatal(http.ListenAndServe(":8081", nil))
 }
